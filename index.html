@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pax Node Web</title>
+  <style>
+    body {
+      font-family: 'Courier New', Courier, monospace;
+    }
+    .bold {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<div class="readings">
+  <div class="ble-container"><span class="bold ble-title">Bluetooth: </span><span class="ble">No Data</span></div>
+  <div class="wifi-container"><span class="bold wifi-title">Wifi: </span><span class="wifi">No Data</span></div>
+</div>
+<script
+src="https://code.jquery.com/jquery-2.2.4.min.js"
+integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+crossorigin="anonymous"></script>
+<script>
+  var appSettings = null;
+  jQuery(function () {
+    $.get(`app.json`)
+        .done(function (resources) {
+        appSettings = resources;
+        WebSocketConnection();
+    }).fail(function (err) {
+        console.log(err);
+    });
+});
+
+function WebSocketConnection() {
+    var ws = new WebSocket(appSettings.websocket.ws);
+    ws.onopen = function () {
+        console.log("Ws Connection Success");
+    }
+    ws.onmessage = function (msg) {
+      //console.log(msg.data);
+      if (msg.data) {
+        obj = JSON.parse(msg.data.trim());
+        const ble = obj.uplink_message.decoded_payload.ble;
+        const wifi = obj.uplink_message.decoded_payload.wifi;
+        console.log(ble,wifi);
+        $('.ble').text(ble);
+        $('.wifi').text(wifi);
+      } else {
+        console.log("no msg data");
+        $('.ble').text('no data');
+        $('.wifi').text('no data');
+      }
+   }
+}
+</script>
+</body>
+</html>
